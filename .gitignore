@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+
+# Training outputs
+checkpoints/
+checkpoints_*/
+compare_global256_*/
+
+# Dataset cache
+data/
+shared-data/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

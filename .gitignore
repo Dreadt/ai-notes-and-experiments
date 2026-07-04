@@ -15,6 +15,13 @@ compare_global256_*/
 data/
 shared-data/
 
+# Local notes kept on disk only
+setup_and_run.md
+Lightning学习计划.md
+Lightning博客式学习笔记模板.md
+DDP-MNIST/README.md
+DDP-MNIST/compare_global_batch_size.md
+
 # OS / editor
 .DS_Store
 .idea/

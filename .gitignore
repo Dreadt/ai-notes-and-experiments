@@ -10,6 +10,10 @@ venv/
 checkpoints/
 checkpoints_*/
 compare_global256_*/
+accelerator&wandb/outputs/
+accelerator&wandb/wandb/
+accelerator&wandb/logs/
+accelerator&wandb/__pycache__/
 
 # Dataset cache
 data/

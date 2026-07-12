@@ -14,6 +14,7 @@ accelerator&wandb/outputs/
 accelerator&wandb/wandb/
 accelerator&wandb/logs/
 accelerator&wandb/__pycache__/
+accelerator&wandb/*.md
 
 # Dataset cache
 data/

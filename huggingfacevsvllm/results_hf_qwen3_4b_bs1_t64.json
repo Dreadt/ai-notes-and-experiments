@@ -1,0 +1,79 @@
+{
+  "engine": "huggingface_transformers",
+  "model": "/root/.cache/modelscope/models/Qwen--Qwen3-4B/snapshots/master",
+  "batch_size": 1,
+  "max_new_tokens": 64,
+  "prompt_count": 8,
+  "total_wall_time_sec": 15.140227248892188,
+  "avg_latency_per_prompt_sec": 1.8925284061115235,
+  "input_tokens_total": 129,
+  "output_tokens_total": 512,
+  "output_tokens_per_sec": 33.81719386262601,
+  "end_to_end_tokens_per_sec": 42.33754153504545,
+  "results": [
+    {
+      "id": "p1",
+      "prompt": "Explain in plain language how gradient descent works, using a simple analogy.",
+      "output": " Also, explain the difference between gradient descent and stochastic gradient descent. Additionally, explain the difference between gradient descent and the other two types of gradient descent (i.e., stochastic and mini-batch). Also, explain the difference between gradient descent and the other two types of gradient descent (i.e., stochastic and mini-batch",
+      "input_tokens": 15,
+      "output_tokens": 64,
+      "batch_latency_sec": 1.8928713258355856
+    },
+    {
+      "id": "p2",
+      "prompt": "Write a concise summary of the advantages and risks of using autonomous agents with external tools.",
+      "output": " The summary should be in a single paragraph, no markdown, and include at least three advantages and three risks. The summary should be in English, and the total word count should be between 100 and 150 words. \n\nAutonomous agents with external tools offer significant advantages, including enhanced efficiency through automation",
+      "input_tokens": 17,
+      "output_tokens": 64,
+      "batch_latency_sec": 1.9000119287520647
+    },
+    {
+      "id": "p3",
+      "prompt": "Given a list of integers, describe an efficient algorithm to find the top k largest values and explain its complexity.",
+      "output": " Also, explain why the algorithm is efficient.\n\nTo find the top k largest values in a list of integers efficiently, we can use a min-heap (priority queue) of size k. Here's how the algorithm works:\n\n1. **Initialize a min-heap** with the first k elements from the list. This",
+      "input_tokens": 22,
+      "output_tokens": 64,
+      "batch_latency_sec": 1.894263243302703
+    },
+    {
+      "id": "p4",
+      "prompt": "Draft a short response to a teammate explaining why reproducible benchmarking needs controlled variables.",
+      "output": " In the response, include the following: 1) the definition of a controlled variable, 2) the purpose of controlling variables, and 3) an example of a controlled variable in a real-world scenario. The response should be in a friendly, conversational tone, and not more than 3 sentences. \n\n",
+      "input_tokens": 17,
+      "output_tokens": 64,
+      "batch_latency_sec": 1.8859104551374912
+    },
+    {
+      "id": "p5",
+      "prompt": "Compare supervised fine-tuning and reinforcement learning for large language models in one paragraph.",
+      "output": " \n\nSupervised fine-tuning (SFT) and reinforcement learning (RL) are two distinct approaches for training large language models. SFT involves training a model on a large dataset of labeled examples, where the model learns to map inputs to outputs by minimizing the difference between its predictions and the correct answers. This method is",
+      "input_tokens": 16,
+      "output_tokens": 64,
+      "batch_latency_sec": 1.8942326828837395
+    },
+    {
+      "id": "p6",
+      "prompt": "Describe the difference between latency and throughput in model inference systems.",
+      "output": " Also, explain the difference between model quantization and model pruning. Additionally, explain the difference between model compression and model optimization. Finally, explain the difference between model inference and model training. Please provide a concise explanation for each of these four questions, and make sure that the explanations are accurate and not vague.\n\nSure! Here",
+      "input_tokens": 12,
+      "output_tokens": 64,
+      "batch_latency_sec": 1.8878325708210468
+    },
+    {
+      "id": "p7",
+      "prompt": "Outline a study plan for learning tool use in language models over the next two weeks.",
+      "output": " The plan should include daily goals, weekly goals, and a final project. The study plan should be structured in a way that allows for self-assessment and reflection. Also, include a section on how to track progress and adjust the plan as needed. \n\nAdditionally, the study plan should be structured in a way that allows",
+      "input_tokens": 17,
+      "output_tokens": 64,
+      "batch_latency_sec": 1.8846578672528267
+    },
+    {
+      "id": "p8",
+      "prompt": "Explain why KV cache efficiency matters for autoregressive generation.",
+      "output": " KV cache is a crucial component in autoregressive language models, particularly in the context of generating text sequentially. It stores the key-value pairs (KVs) of the model's attention mechanism, which are used to compute the attention scores for the next token prediction. The efficiency of the KV cache can significantly impact the performance",
+      "input_tokens": 13,
+      "output_tokens": 64,
+      "batch_latency_sec": 1.8868076372891665
+    }
+  ]
+}

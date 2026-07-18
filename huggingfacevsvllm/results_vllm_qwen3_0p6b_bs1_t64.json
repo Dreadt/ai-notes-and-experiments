@@ -1,0 +1,79 @@
+{
+  "engine": "vllm",
+  "model": "Qwen/Qwen3-0.6B",
+  "batch_size": 1,
+  "max_new_tokens": 64,
+  "prompt_count": 8,
+  "total_wall_time_sec": 2.163026126101613,
+  "avg_latency_per_prompt_sec": 0.27037826576270163,
+  "input_tokens_total": 129,
+  "output_tokens_total": 512,
+  "output_tokens_per_sec": 236.7054164633551,
+  "end_to_end_tokens_per_sec": 296.3440858457239,
+  "results": [
+    {
+      "id": "p1",
+      "prompt": "Explain in plain language how gradient descent works, using a simple analogy.",
+      "output": " Maybe use a car analogy. Also, explain what the gradient is, and how it's used in the algorithm. Also, explain what the learning rate is, and how it's used in the algorithm. Also, explain what the loss function is, and how it's used in the algorithm. Also, explain what the",
+      "input_tokens": 15,
+      "output_tokens": 64,
+      "batch_latency_sec": 0.26991078071296215
+    },
+    {
+      "id": "p2",
+      "prompt": "Write a concise summary of the advantages and risks of using autonomous agents with external tools.",
+      "output": " The summary should include at least one example of a tool that is used in a real-world scenario. The summary should be in a formal tone, with a clear structure and logical flow.\nAnswer:\n\nThe use of autonomous agents with external tools presents both advantages and risks. One of the key advantages is the ability to perform complex",
+      "input_tokens": 17,
+      "output_tokens": 64,
+      "batch_latency_sec": 0.2695202697068453
+    },
+    {
+      "id": "p3",
+      "prompt": "Given a list of integers, describe an efficient algorithm to find the top k largest values and explain its complexity.",
+      "output": " Also, provide an example of a dataset and a possible implementation.\n**Note:** The dataset is a list of integers, and the algorithm must be efficient enough to handle large datasets.\n**Answer:**\n**Answer:**\n**Answer:**\n**Answer:**\n**Answer:**\n**Answer:**\n**Answer:**\n",
+      "input_tokens": 22,
+      "output_tokens": 64,
+      "batch_latency_sec": 0.27542191930115223
+    },
+    {
+      "id": "p4",
+      "prompt": "Draft a short response to a teammate explaining why reproducible benchmarking needs controlled variables.",
+      "output": " Also, include a sentence that explains the importance of reproducible benchmarking in the context of the field. The response should be in a formal tone, and include a sentence that explains the role of the researcher in this process.\nThe response should be 100-150 words.\nAnswer:\n\n**Repro",
+      "input_tokens": 17,
+      "output_tokens": 64,
+      "batch_latency_sec": 0.26803910732269287
+    },
+    {
+      "id": "p5",
+      "prompt": "Compare supervised fine-tuning and reinforcement learning for large language models in one paragraph.",
+      "output": " Please provide a paragraph that includes the following points: 1. Supervised fine-tuning is a method where the model is trained on a labeled dataset. 2. Reinforcement learning is a method where the model is trained on a reward function. 3. Supervised fine-tuning is used for tasks where the",
+      "input_tokens": 16,
+      "output_tokens": 64,
+      "batch_latency_sec": 0.26987270824611187
+    },
+    {
+      "id": "p6",
+      "prompt": "Describe the difference between latency and throughput in model inference systems.",
+      "output": " What are the implications of this difference on the performance of the system? What are the possible ways to improve the performance of the system? What are the possible challenges in implementing these improvements? What are the possible benefits of using a model that is trained on a different dataset? What are the possible challenges in using a model that",
+      "input_tokens": 12,
+      "output_tokens": 64,
+      "batch_latency_sec": 0.2686247192323208
+    },
+    {
+      "id": "p7",
+      "prompt": "Outline a study plan for learning tool use in language models over the next two weeks.",
+      "output": " The study should include a detailed plan for each day, with specific tasks and objectives. The study should also include a reflection and a summary. The study should be written in a formal academic tone, with clear and concise language, and include all necessary elements. The study should be written in a formal academic tone, with clear",
+      "input_tokens": 17,
+      "output_tokens": 64,
+      "batch_latency_sec": 0.26830205507576466
+    },
+    {
+      "id": "p8",
+      "prompt": "Explain why KV cache efficiency matters for autoregressive generation.",
+      "output": " What are the key factors that affect the efficiency of KV cache in this context? What are the implications of the efficiency of KV cache on the performance of the model? What are the possible solutions to the problem of KV cache efficiency in autoregressive generation?\nAnswer:\n\nKV cache efficiency is crucial for autoregressive generation because",
+      "input_tokens": 13,
+      "output_tokens": 64,
+      "batch_latency_sec": 0.2697189040482044
+    }
+  ]
+}

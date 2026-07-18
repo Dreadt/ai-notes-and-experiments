@@ -1,0 +1,8 @@
+{"id": "p1", "prompt": "Explain in plain language how gradient descent works, using a simple analogy."}
+{"id": "p2", "prompt": "Write a concise summary of the advantages and risks of using autonomous agents with external tools."}
+{"id": "p3", "prompt": "Given a list of integers, describe an efficient algorithm to find the top k largest values and explain its complexity."}
+{"id": "p4", "prompt": "Draft a short response to a teammate explaining why reproducible benchmarking needs controlled variables."}
+{"id": "p5", "prompt": "Compare supervised fine-tuning and reinforcement learning for large language models in one paragraph."}
+{"id": "p6", "prompt": "Describe the difference between latency and throughput in model inference systems."}
+{"id": "p7", "prompt": "Outline a study plan for learning tool use in language models over the next two weeks."}
+{"id": "p8", "prompt": "Explain why KV cache efficiency matters for autoregressive generation."}

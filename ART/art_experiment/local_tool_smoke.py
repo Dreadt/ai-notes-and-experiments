@@ -23,12 +23,16 @@ from art.pipeline_trainer import PipelineTrainer
 
 DEFAULT_BASE_MODEL = os.environ.get("ART_BASE_MODEL", "Qwen/Qwen3-0.6B")
 PROJECT = os.environ.get("ART_PROJECT", "art-local-tool-smoke")
-MODEL_PREFIX = os.environ.get("ART_MODEL_PREFIX", "qwen3-0.6b-local-tool-smoke")
+MODEL_PREFIX = os.environ.get(
+    "ART_MODEL_PREFIX",
+    f"{DEFAULT_BASE_MODEL.split('/')[-1].lower().replace('.', 'p')}-local-tool-smoke",
+)
 ROLLOUTS_PER_SCENARIO = int(os.environ.get("ART_ROLLOUTS_PER_SCENARIO", "8"))
 MAX_TOKENS = int(os.environ.get("ART_MAX_TOKENS", "48"))
 MAX_STEPS = int(os.environ.get("ART_MAX_STEPS", "2"))
 ROLLOUT_TEMPERATURE = float(os.environ.get("ART_ROLLOUT_TEMPERATURE", "1.0"))
 EVAL_TEMPERATURE = float(os.environ.get("ART_EVAL_TEMPERATURE", "0.2"))
+EVAL_AT_START = os.environ.get("ART_EVAL_AT_START", "0") == "1"
 MIN_BATCH_SIZE = int(os.environ.get("ART_MIN_BATCH_SIZE", "2"))
 DISCARD_QUEUE_MULTIPLIER = int(os.environ.get("ART_DISCARD_QUEUE_MULTIPLIER", "500"))
 ART_PATH = os.environ.get(
@@ -54,12 +58,31 @@ def resolve_base_model(model_name: str) -> str:
     if os.path.exists(model_name):
         return model_name
 
-    if model_name == "Qwen/Qwen3-0.6B":
-        snapshot_root = Path("/root/.cache/huggingface/hub/models--Qwen--Qwen3-0.6B/snapshots")
-        if snapshot_root.exists():
-            snapshots = sorted(path for path in snapshot_root.iterdir() if path.is_dir())
-            if snapshots:
-                return str(snapshots[-1])
+    def is_complete_snapshot(path: Path) -> bool:
+        return any(path.glob("model-*.safetensors")) or (path / "model.safetensors").exists()
+
+    snapshot_roots = {
+        "Qwen/Qwen3-0.6B": [
+            "/root/.cache/huggingface/hub/models--Qwen--Qwen3-0.6B/snapshots",
+            "/root/.cache/modelscope/models/Qwen--Qwen3-0.6B/snapshots",
+        ],
+        "Qwen/Qwen3-1.7B": [
+            "/root/.cache/huggingface/hub/models--Qwen--Qwen3-1.7B/snapshots",
+            "/root/.cache/modelscope/models/Qwen--Qwen3-1.7B/snapshots",
+        ],
+        "Qwen/Qwen3-4B": [
+            "/root/.cache/huggingface/hub/models--Qwen--Qwen3-4B/snapshots",
+            "/root/.cache/modelscope/models/Qwen--Qwen3-4B/snapshots",
+        ],
+    }
+    for snapshot_root_value in snapshot_roots.get(model_name, []):
+        snapshot_root = Path(snapshot_root_value)
+        if not snapshot_root.exists():
+            continue
+        snapshots = sorted(path for path in snapshot_root.iterdir() if path.is_dir())
+        for snapshot in reversed(snapshots):
+            if is_complete_snapshot(snapshot):
+                return str(snapshot)
     return model_name
 
 
@@ -297,7 +320,7 @@ async def main() -> None:
         discard_queue_multiplier=DISCARD_QUEUE_MULTIPLIER,
         max_steps=MAX_STEPS,
         eval_every_n_steps=1,
-        eval_at_start=False,
+        eval_at_start=EVAL_AT_START,
         save_checkpoint=False,
     )
 

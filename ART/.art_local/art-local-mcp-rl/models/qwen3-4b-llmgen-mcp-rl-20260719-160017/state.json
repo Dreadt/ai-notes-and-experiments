@@ -1,0 +1,31 @@
+{
+  "_metrics_builder_state": {
+    "cum_state": {
+      "time/cum/wall_s": 109.7266444414854,
+      "time/cum/trainer_s": 107.51044468581676,
+      "time/cum/actor_s": 351.89013201743364,
+      "data/cum/num_scenarios": 22.0,
+      "data/cum/num_trajectories": 88.0,
+      "data/cum/num_groups_submitted": 22.0,
+      "data/cum/num_groups_trainable": 18.0,
+      "data/cum/trainer_tokens": 4608.0,
+      "data/cum/num_gradient_steps": 72.0,
+      "throughput/cum/trainer_idle_s": 2.2143111526966095,
+      "throughput/cum/actor_idle_s": 0.001722969114780426,
+      "time/cum/eval_s": 129.34770361334085
+    },
+    "unique_scenario_ids": []
+  },
+  "_pipeline_trainer": {
+    "scenario_offset": 91,
+    "total_scenarios_consumed": 91,
+    "training_step": 4,
+    "last_eval_step": 4,
+    "completed_eval_steps": [
+      1,
+      2,
+      3,
+      4
+    ]
+  }
+}

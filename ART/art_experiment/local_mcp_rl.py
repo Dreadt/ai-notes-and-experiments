@@ -12,6 +12,7 @@ from pathlib import Path
 import re
 import sys
 import types
+from typing import Any
 
 try:
     import unsloth  # noqa: F401
@@ -25,22 +26,32 @@ from art.mcp.types import MCPTool
 from art.pipeline_trainer import PipelineTrainer
 from mcp import ClientSession
 from mcp.client.stdio import StdioServerParameters, stdio_client
+from openai import AsyncOpenAI
 
 
 DEFAULT_BASE_MODEL = os.environ.get("ART_BASE_MODEL", "Qwen/Qwen3-0.6B")
 PROJECT = os.environ.get("ART_PROJECT", "art-local-mcp-rl")
-MODEL_PREFIX = os.environ.get("ART_MODEL_PREFIX", "qwen3-0.6b-local-mcp-rl")
+MODEL_PREFIX = os.environ.get(
+    "ART_MODEL_PREFIX",
+    f"{DEFAULT_BASE_MODEL.split('/')[-1].lower().replace('.', 'p')}-local-mcp-rl",
+)
 ROLLOUTS_PER_SCENARIO = int(os.environ.get("ART_ROLLOUTS_PER_SCENARIO", "8"))
 MAX_TOKENS = int(os.environ.get("ART_MAX_TOKENS", "64"))
 MAX_STEPS = int(os.environ.get("ART_MAX_STEPS", "2"))
 ROLLOUT_TEMPERATURE = float(os.environ.get("ART_ROLLOUT_TEMPERATURE", "1.0"))
 EVAL_TEMPERATURE = float(os.environ.get("ART_EVAL_TEMPERATURE", "0.2"))
+EVAL_AT_START = os.environ.get("ART_EVAL_AT_START", "0") == "1"
 MIN_BATCH_SIZE = int(os.environ.get("ART_MIN_BATCH_SIZE", "2"))
 DISCARD_QUEUE_MULTIPLIER = int(os.environ.get("ART_DISCARD_QUEUE_MULTIPLIER", "500"))
 ART_PATH = os.environ.get(
     "ART_ART_PATH",
     os.path.join(os.path.dirname(os.path.dirname(__file__)), ".art_local"),
 )
+SCENARIO_SOURCE = os.environ.get("ART_SCENARIO_SOURCE", "manual").strip().lower()
+SYNTHETIC_SCENARIO_COUNT = int(os.environ.get("ART_SYNTHETIC_SCENARIO_COUNT", "24"))
+SCENARIO_GENERATOR_BASE_URL = os.environ.get("ART_SCENARIO_GENERATOR_BASE_URL", "").strip()
+SCENARIO_GENERATOR_API_KEY = os.environ.get("ART_SCENARIO_GENERATOR_API_KEY", "").strip()
+SCENARIO_GENERATOR_MODEL = os.environ.get("ART_SCENARIO_GENERATOR_MODEL", "").strip()
 SERVER_PATH = (
     Path(os.environ.get("ART_MCP_SERVER_PATH", ""))
     if os.environ.get("ART_MCP_SERVER_PATH")
@@ -68,12 +79,31 @@ def resolve_base_model(model_name: str) -> str:
     if os.path.exists(model_name):
         return model_name
 
-    if model_name == "Qwen/Qwen3-0.6B":
-        snapshot_root = Path("/root/.cache/huggingface/hub/models--Qwen--Qwen3-0.6B/snapshots")
-        if snapshot_root.exists():
-            snapshots = sorted(path for path in snapshot_root.iterdir() if path.is_dir())
-            if snapshots:
-                return str(snapshots[-1])
+    def is_complete_snapshot(path: Path) -> bool:
+        return any(path.glob("model-*.safetensors")) or (path / "model.safetensors").exists()
+
+    snapshot_roots = {
+        "Qwen/Qwen3-0.6B": [
+            "/root/.cache/huggingface/hub/models--Qwen--Qwen3-0.6B/snapshots",
+            "/root/.cache/modelscope/models/Qwen--Qwen3-0.6B/snapshots",
+        ],
+        "Qwen/Qwen3-1.7B": [
+            "/root/.cache/huggingface/hub/models--Qwen--Qwen3-1.7B/snapshots",
+            "/root/.cache/modelscope/models/Qwen--Qwen3-1.7B/snapshots",
+        ],
+        "Qwen/Qwen3-4B": [
+            "/root/.cache/huggingface/hub/models--Qwen--Qwen3-4B/snapshots",
+            "/root/.cache/modelscope/models/Qwen--Qwen3-4B/snapshots",
+        ],
+    }
+    for snapshot_root_value in snapshot_roots.get(model_name, []):
+        snapshot_root = Path(snapshot_root_value)
+        if not snapshot_root.exists():
+            continue
+        snapshots = sorted(path for path in snapshot_root.iterdir() if path.is_dir())
+        for snapshot in reversed(snapshots):
+            if is_complete_snapshot(snapshot):
+                return str(snapshot)
     return model_name
 
 
@@ -217,6 +247,125 @@ def build_scenarios(discovered_tools: list[MCPTool], tool_results: dict[str, int
                 difficulty=difficulty,
             )
         )
+    return scenarios
+
+
+def _make_generator_client() -> AsyncOpenAI:
+    if not SCENARIO_GENERATOR_API_KEY:
+        raise RuntimeError("ART_SCENARIO_GENERATOR_API_KEY is required when ART_SCENARIO_SOURCE=llm")
+    if not SCENARIO_GENERATOR_MODEL:
+        raise RuntimeError("ART_SCENARIO_GENERATOR_MODEL is required when ART_SCENARIO_SOURCE=llm")
+    kwargs: dict[str, Any] = {"api_key": SCENARIO_GENERATOR_API_KEY}
+    if SCENARIO_GENERATOR_BASE_URL:
+        kwargs["base_url"] = SCENARIO_GENERATOR_BASE_URL
+    return AsyncOpenAI(**kwargs)
+
+
+def _coerce_generated_scenarios(payload: Any, available_tools: set[str]) -> list[dict[str, Any]]:
+    if isinstance(payload, dict):
+        payload = payload.get("scenarios", [])
+    if not isinstance(payload, list):
+        raise RuntimeError("Scenario generator did not return a JSON list")
+
+    normalized: list[dict[str, Any]] = []
+    for item in payload:
+        if not isinstance(item, dict):
+            continue
+        tool = str(item.get("tool", "")).strip().lower()
+        if tool not in available_tools:
+            continue
+        try:
+            a = int(item["a"])
+            b = int(item["b"])
+        except Exception:
+            continue
+        prompt = str(item.get("prompt", "")).strip()
+        if not prompt:
+            prompt = (
+                f"You are connected to an MCP server exposing these tools: {', '.join(sorted(available_tools))}.\n"
+                f"Use the correct MCP tool to solve `{tool}({a}, {b})`.\n"
+                "Reply exactly as: TOOL=<tool> RESULT=<n>"
+            )
+        difficulty = int(item.get("difficulty", 1))
+        normalized.append(
+            {
+                "prompt": prompt,
+                "tool": tool,
+                "a": a,
+                "b": b,
+                "difficulty": max(1, min(difficulty, 3)),
+            }
+        )
+    return normalized
+
+
+async def generate_scenarios_with_llm(
+    discovered_tools: list[MCPTool],
+    session: ClientSession,
+) -> list[Scenario]:
+    available_tools = {tool.name for tool in discovered_tools}
+    client = _make_generator_client()
+    tools_string = ", ".join(sorted(available_tools))
+    prompt = f"""
+You are generating synthetic MCP-RL training scenarios.
+
+Available MCP tools: {tools_string}
+
+Return strictly valid JSON as a list. Each item must have:
+- prompt: string
+- tool: one of [{tools_string}]
+- a: integer
+- b: integer
+- difficulty: integer from 1 to 3
+
+Requirements:
+- Generate exactly {SYNTHETIC_SCENARIO_COUNT} diverse arithmetic tasks.
+- Prompts must mention the available MCP tools and ask the model to solve a task by using the correct tool.
+- Keep prompts short and practical.
+- Use only integer inputs between 0 and 40.
+- Ensure the target tool matches the intended operation.
+- Do not include markdown fences.
+""".strip()
+
+    response = await client.chat.completions.create(
+        model=SCENARIO_GENERATOR_MODEL,
+        temperature=0.7,
+        messages=[
+            {
+                "role": "system",
+                "content": "You generate compact JSON datasets for tool-use reinforcement learning.",
+            },
+            {"role": "user", "content": prompt},
+        ],
+        response_format={"type": "json_object"},
+    )
+
+    content = response.choices[0].message.content or "{}"
+    parsed = json.loads(content)
+    generated_items = _coerce_generated_scenarios(parsed, available_tools)
+    if len(generated_items) < max(8, SYNTHETIC_SCENARIO_COUNT // 2):
+        raise RuntimeError(
+            f"Scenario generator returned too few valid scenarios: {len(generated_items)}"
+        )
+
+    scenarios: list[Scenario] = []
+    for item in generated_items:
+        result = await session.call_tool(item["tool"], {"a": item["a"], "b": item["b"]})
+        scalar = extract_scalar_tool_result(result)
+        if scalar is None:
+            continue
+        scenarios.append(
+            Scenario(
+                prompt=item["prompt"],
+                tool=item["tool"],
+                a=item["a"],
+                b=item["b"],
+                expected_result=scalar,
+                difficulty=item["difficulty"],
+            )
+        )
+    if not scenarios:
+        raise RuntimeError("Scenario generator did not yield any executable MCP scenarios")
     return scenarios
 
 
@@ -370,7 +519,10 @@ async def collect_tools_and_scenarios(
             raise RuntimeError(f"Failed to parse tool result for {tool_name}({a}, {b})")
         tool_results[f"{tool_name}:{a}:{b}"] = scalar
 
-    scenarios = build_scenarios(tools, tool_results)
+    if SCENARIO_SOURCE == "llm":
+        scenarios = await generate_scenarios_with_llm(tools, session)
+    else:
+        scenarios = build_scenarios(tools, tool_results)
     if not scenarios:
         raise RuntimeError("No scenarios were built from discovered MCP tools")
     return tools, scenarios
@@ -392,7 +544,7 @@ async def main() -> None:
     )
 
     server_params = StdioServerParameters(
-        command="python",
+        command=sys.executable,
         args=[str(SERVER_PATH)],
         cwd=str(SERVER_PATH.parent.parent),
     )
@@ -410,6 +562,7 @@ async def main() -> None:
             print(f"[ART] discovered tools: {sorted(allowed_tools)}")
             print(
                 f"[ART] mcp-rl task: scenarios={len(scenario_list)}, "
+                f"scenario_source={SCENARIO_SOURCE}, "
                 f"rollout_temperature={ROLLOUT_TEMPERATURE}, "
                 f"eval_temperature={EVAL_TEMPERATURE}"
             )
@@ -452,7 +605,7 @@ async def main() -> None:
                 discard_queue_multiplier=DISCARD_QUEUE_MULTIPLIER,
                 max_steps=MAX_STEPS,
                 eval_every_n_steps=1,
-                eval_at_start=False,
+                eval_at_start=EVAL_AT_START,
                 save_checkpoint=False,
             )
 

@@ -5,6 +5,8 @@ __pycache__/
 # Virtual environments
 .venv/
 venv/
+ART/.venv_sys/
+ART/.runtime_libs/
 
 # Training outputs
 checkpoints/
@@ -15,6 +17,16 @@ accelerator&wandb/wandb/
 accelerator&wandb/logs/
 accelerator&wandb/__pycache__/
 accelerator&wandb/*.md
+ART/.cache_runtime/
+ART/unsloth_compiled_cache/
+ART/.art_local/**/checkpoints/
+ART/.art_local/**/tensors/
+swift/outputs/**/checkpoint-*/
+swift/outputs/**/runs/
+swift/outputs/**/*.safetensors
+swift/outputs/**/*.bin
+swift/outputs/**/*.pt
+swift/outputs/**/*.pth
 
 # Dataset cache
 data/
